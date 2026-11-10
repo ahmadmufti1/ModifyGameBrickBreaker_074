@@ -97,3 +97,70 @@ class Block:
         """Mengembalikan nilai health saat ini dari blok."""
         return self.health
 
+
+# Kelas untuk mengontrol Bola dengan Efek Jejak (Trail)
+class Ball:
+    def __init__(self, posx, posy, radius, speed, color):
+        """Inisialisasi posisi, radius, kecepatan, dan riwayat jejak bola."""
+        self.posx, self.posy = posx, posy
+        self.radius = radius
+        self.speed = speed
+        self.color = color
+        self.xFac, self.yFac = 0, 0
+        self.is_moving = False
+        self.trail = []  # Menyimpan riwayat posisi untuk efek visual jejak (motion blur)
+
+        self.ball = pygame.draw.circle(
+            screen, self.color, (int(self.posx), int(self.posy)), self.radius)
+
+    def display(self):
+        """Menampilkan efek jejak bola (trail) dan bola utamanya ke layar."""
+        # Render efek jejak (lingkaran transparan/mengecil di belakang bola)
+        for pos in self.trail:
+            pygame.draw.circle(screen, (50, 50, 80), (int(pos[0]), int(pos[1])), self.radius - 2)
+
+        # Render bola utama
+        self.ball = pygame.draw.circle(
+            screen, self.color, (int(self.posx), int(self.posy)), self.radius)
+
+    def update(self, striker=None):
+        """Memperbarui koordinat bola serta menyimpan riwayat posisi untuk efek jejak."""
+        if not self.is_moving and striker is not None:
+            self.posx = striker.posx + striker.width // 2
+            self.posy = striker.posy - self.radius
+            self.trail.clear()
+        else:
+            # Simpan posisi saat ini ke dalam list trail sebelum bergerak
+            self.trail.append((self.posx, self.posy))
+            if len(self.trail) > 6:  # Batasi panjang jejak
+                self.trail.pop(0)
+
+            self.posx += self.xFac * self.speed
+            self.posy += self.yFac * self.speed
+
+            if self.posx <= 0 or self.posx >= WIDTH:
+                self.xFac *= -1
+
+            if self.posy <= 0:
+                self.yFac *= -1
+
+            if self.posy >= HEIGHT:
+                return True
+
+        return False
+
+    def launch(self):
+        """Meluncurkan bola dari posisi striker ke atas."""
+        if not self.is_moving:
+            self.is_moving = True
+            self.xFac = random.choice([-1, 1])
+            self.yFac = -1
+
+    def hit(self):
+        """Membalikkan arah sumbu Y bola saat terjadi tabrakan."""
+        self.yFac *= -1
+
+    def getRect(self):
+        """Mengembalikan objek Rect pembatas lingkaran bola."""
+        return self.ball
+
