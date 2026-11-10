@@ -207,3 +207,263 @@ class PowerUp:
         """Mengembalikan objek Rect power-up."""
         return self.rect
 
+
+# Fungsi Pembantu (Helper Functions)
+
+def collisionChecker(rect, ball):
+    """Fungsi untuk memeriksa tabrakan antara dua objek Rect."""
+    if rect.colliderect(ball):
+        return True
+    return False
+
+
+def populateBlocks(blockWidth, blockHeight, horizontalGap, verticalGap):
+    """Fungsi untuk menyusun daftar balok dalam arena permainan."""
+    listOfBlocks = []
+    start_y = 60 
+    for i in range(25, WIDTH - blockWidth, blockWidth + horizontalGap):
+        for j in range(start_y, HEIGHT // 2 - 20, blockHeight + verticalGap):
+            chosen_color = random.choice([WHITE, GREEN, RED])
+            listOfBlocks.append(
+                Block(i, j, blockWidth, blockHeight, chosen_color))
+    return listOfBlocks
+
+
+def startScreen():
+    """Fungsi untuk menampilkan layar utama (Start Menu) dengan nuansa neon."""
+    waiting = True
+    while waiting:
+        screen.fill(BLACK)
+        title_text = large_font.render("NEON BLOCK BREAKER", True, CYAN)
+        instruction_text = font.render("Press SPACE Bar to Launch", True, WHITE)
+        controls_text = font.render("Use LEFT & RIGHT Arrows to Move", True, GREEN)
+        
+        screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, HEIGHT // 2 - 60))
+        screen.blit(instruction_text, (WIDTH // 2 - instruction_text.get_width() // 2, HEIGHT // 2))
+        screen.blit(controls_text, (WIDTH // 2 - controls_text.get_width() // 2, HEIGHT // 2 + 40))
+        
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True
+                if event.key == pygame.K_ESCAPE:
+                    return False
+    return False
+
+
+def gameOver(score):
+    """Fungsi layar Game Over saat nyawa habis."""
+    run_game_over = True
+    while run_game_over:
+        screen.fill(BLACK)
+        over_text = large_font.render("GAME OVER", True, RED)
+        score_text = font.render(f"Final Score: {score}", True, WHITE)
+        restart_text = font.render("Press SPACE to Restart or ESC to Quit", True, YELLOW)
+        
+        screen.blit(over_text, (WIDTH // 2 - over_text.get_width() // 2, HEIGHT // 2 - 50))
+        screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2 - 10))
+        screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 30))
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True
+                if event.key == pygame.K_ESCAPE:
+                    return False
+    return False
+
+
+def victoryScreen(score):
+    """Fungsi layar kemenangan saat seluruh balok hancur."""
+    run_victory = True
+    while run_victory:
+        screen.fill(BLACK)
+        vic_text = large_font.render("VICTORY! YOU WIN!", True, GREEN)
+        score_text = font.render(f"Final Score: {score}", True, WHITE)
+        restart_text = font.render("Press SPACE to Play Again or ESC to Quit", True, YELLOW)
+        
+        screen.blit(vic_text, (WIDTH // 2 - vic_text.get_width() // 2, HEIGHT // 2 - 50))
+        screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2 - 10))
+        screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 30))
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True
+                if event.key == pygame.K_ESCAPE:
+                    return False
+    return False
+
+
+# Fungsi Utama Pengelola Game (Game Manager)
+def main():
+    if not startScreen():
+        return
+
+    running = True
+    lives = 3
+    score = 0
+
+    striker = Striker(WIDTH // 2 - 50, HEIGHT - 40, 100, 15, 8, WHITE)
+    strikerXFac = 0
+
+    balls = [Ball(striker.posx + striker.width // 2, striker.posy - 8, 8, 5, WHITE)]
+    power_ups = []
+    
+    # Variabel timer untuk efek power-up papan lebar (Wide Paddle)
+    wide_timer = 0
+
+    blockWidth, blockHeight = 50, 18
+    horizontalGap, verticalGap = 12, 12
+
+    listOfBlocks = populateBlocks(
+        blockWidth, blockHeight, horizontalGap, verticalGap)
+
+    # Loop Utama Permainan
+    while running:
+        screen.fill(BLACK)
+
+        # Menggambar garis batas atas UI agar terlihat rapi dan elegan
+        pygame.draw.line(screen, (40, 40, 60), (0, 40), (WIDTH, 40), 2)
+
+        # Menampilkan teks informasi UI di atas layar
+        scoreText = font.render(f"SCORE : {score}", True, WHITE)
+        livesText = font.render(f"LIVES : {lives}", True, RED)
+        activeBallsText = font.render(f"BALLS : {len(balls)}", True, YELLOW)
+        
+        screen.blit(scoreText, (20, 12))
+        screen.blit(activeBallsText, (WIDTH // 2 - 45, 12))
+        screen.blit(livesText, (WIDTH - 100, 12))
+
+        # Mengatur durasi efek papan lebar (Wide Paddle berdurasi sekitar 8 detik / 480 frame)
+        if wide_timer > 0:
+            wide_timer -= 1
+            if wide_timer == 0:
+                striker.width = 100  # Kembalikan ukuran normal
+
+        # Cek kondisi kemenangan
+        if not listOfBlocks:
+            running = victoryScreen(score)
+            if running:
+                lives = 3
+                score = 0
+                striker.width = 100
+                balls = [Ball(striker.posx + striker.width // 2, striker.posy - 8, 8, 5, WHITE)]
+                power_ups.clear()
+                listOfBlocks = populateBlocks(blockWidth, blockHeight, horizontalGap, verticalGap)
+            else:
+                break
+
+        # Penanganan Event Keyboard
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    strikerXFac = -1
+                if event.key == pygame.K_RIGHT:
+                    strikerXFac = 1
+                if event.key == pygame.K_SPACE:
+                    for ball in balls:
+                        ball.launch()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    strikerXFac = 0
+
+        # Loop pembaruan bola dan deteksi tabrakan
+        for ball in balls[:]:
+            if collisionChecker(striker.getRect(), ball.getRect()) and ball.is_moving:
+                ball.hit()
+                offset = ball.posx - (striker.posx + striker.width / 2)
+                ball.xFac = offset / (striker.width / 2)
+
+            for block in listOfBlocks[:]:
+                if collisionChecker(block.getRect(), ball.getRect()) and ball.is_moving:
+                    ball.hit()
+                    block.hit()
+
+                    if block.getHealth() <= 0:
+                        listOfBlocks.remove(block)
+                        
+                        if block.color == RED:
+                            score += 15
+                        elif block.color == WHITE:
+                            score += 10
+                        else:
+                            score += 5
+
+                        # Peluang 30% menjatuhkan power-up acak
+                        if random.random() < 0.30:
+                            new_powerup = PowerUp(block.posx + block.width // 2 - 12, block.posy)
+                            power_ups.append(new_powerup)
+
+                    break
+
+            lifeLost = ball.update(striker)
+            if lifeLost:
+                balls.remove(ball)
+
+        # Memperbarui dan memeriksa tangkapan item Power-Up
+        for p in power_ups[:]:
+            p.update()
+            if collisionChecker(striker.getRect(), p.getRect()):
+                if p.type == 'BALL':
+                    extra_ball = Ball(striker.posx + striker.width // 2, striker.posy - 15, 8, 5, YELLOW)
+                    extra_ball.launch()
+                    balls.append(extra_ball)
+                elif p.type == 'WIDE':
+                    striker.width = 150  # Perlebar papan pemukul
+                    wide_timer = 480     # Durasi efek aktif
+                elif p.type == 'LIFE':
+                    lives += 1           # Tambah nyawa pemain
+                
+                power_ups.remove(p)
+            elif p.posy > HEIGHT:
+                power_ups.remove(p)
+
+        # Jika semua bola habis jatuh
+        if len(balls) == 0:
+            lives -= 1
+            power_ups.clear()
+            striker.width = 100
+            if lives <= 0:
+                running = gameOver(score)
+                if running:
+                    lives = 3
+                    score = 0
+                    balls = [Ball(striker.posx + striker.width // 2, striker.posy - 8, 8, 5, WHITE)]
+                    listOfBlocks = populateBlocks(
+                        blockWidth, blockHeight, horizontalGap, verticalGap)
+                else:
+                    break
+            else:
+                balls.append(Ball(striker.posx + striker.width // 2, striker.posy - 8, 8, 5, WHITE))
+
+        striker.update(strikerXFac)
+
+        # Render objek ke layar
+        striker.display()
+        for ball in balls:
+            ball.display()
+        for p in power_ups:
+            p.display()
+        for block in listOfBlocks:
+            block.display()
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+if __name__ == "__main__":
+    main()
+    pygame.quit()
