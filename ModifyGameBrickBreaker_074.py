@@ -164,3 +164,46 @@ class Ball:
         """Mengembalikan objek Rect pembatas lingkaran bola."""
         return self.ball
 
+
+# Kelas untuk Item Power-Up yang Jatuh (Multi-Ball, Wide Paddle, Extra Life)
+class PowerUp:
+    def __init__(self, posx, posy):
+        """Inisialisasi jenis power-up secara acak (Kuning: Bola, Cyan: Papan Lebar, Ungu: Nyawa)."""
+        self.width, self.height = 24, 24
+        self.posx = posx
+        self.posy = posy
+        self.speed = 2.5
+        
+        # Menentukan jenis power-up secara probabilitas
+        choice_val = random.random()
+        if choice_val < 0.5:
+            self.type = 'BALL'
+            self.color = YELLOW
+        elif choice_val < 0.8:
+            self.type = 'WIDE'
+            self.color = CYAN
+        else:
+            self.type = 'LIFE'
+            self.color = PURPLE
+
+        self.rect = pygame.Rect(self.posx, self.posy, self.width, self.height)
+
+    def display(self):
+        """Merender item power-up dengan ikon huruf di dalamnya agar informatif."""
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=5)
+        pygame.draw.rect(screen, WHITE, self.rect, 2, border_radius=5)
+        
+        # Menampilkan huruf inisial di dalam kotak power-up
+        letter_map = {'BALL': 'B', 'WIDE': 'W', 'LIFE': '+'}
+        txt = font.render(letter_map[self.type], True, BLACK)
+        screen.blit(txt, (self.posx + 7, self.posy + 2))
+
+    def update(self):
+        """Membuat item jatuh perlahan ke bawah."""
+        self.posy += self.speed
+        self.rect = pygame.Rect(self.posx, self.posy, self.width, self.height)
+
+    def getRect(self):
+        """Mengembalikan objek Rect power-up."""
+        return self.rect
+
