@@ -53,3 +53,47 @@ class Striker:
         """Mengembalikan objek Rect dari striker untuk keperluan deteksi tabrakan."""
         return self.strikerRect
 
+
+# Kelas untuk mengontrol Blok/Bata
+class Block:
+    def __init__(self, posx, posy, width, height, color):
+        """Inisialisasi posisi, ukuran, warna, dan health (nyawa) blok."""
+        self.posx, self.posy = posx, posy
+        self.width, self.height = width, height
+        self.color = color
+        self.damage = 100
+
+        if color == RED:
+            self.health = 300
+        elif color == WHITE:
+            self.health = 200
+        else:
+            self.health = 100
+
+        self.blockRect = pygame.Rect(self.posx, self.posy, self.width, self.height)
+
+    def display(self):
+        """Menampilkan blok dengan efek border tipis agar terlihat seperti balok neon."""
+        if self.health > 0:
+            current_color = self.color
+            if self.health == 200 and self.color == RED:
+                current_color = WHITE
+            elif self.health == 100 and (self.color == RED or self.color == WHITE):
+                current_color = GREEN
+            
+            # Menggambar isi balok dan garis pinggirnya agar berkesan estetik
+            pygame.draw.rect(screen, current_color, self.blockRect, border_radius=3)
+            pygame.draw.rect(screen, BLACK, self.blockRect, 2, border_radius=3)
+
+    def hit(self):
+        """Mengurangi health blok ketika terkena bola."""
+        self.health -= self.damage
+
+    def getRect(self):
+        """Mengembalikan objek Rect dari blok."""
+        return self.blockRect
+
+    def getHealth(self):
+        """Mengembalikan nilai health saat ini dari blok."""
+        return self.health
+
