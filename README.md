@@ -1,4 +1,5 @@
 🚀 Fitur & Modifikasi - Block Breaker (Neon Arcade Edition)
+<img width="752" height="657" alt="Screenshot 2026-11-10 111409" src="https://github.com/user-attachments/assets/450f9d30-8c75-4747-8745-22e430b4f5fa" />
 
 Proyek ini merupakan pengembangan dari game klasik Block Breaker berbasis Python menggunakan pustaka Pygame. Berbagai fitur modern, mekanisme interaktif, serta peningkatan visual telah ditambahkan untuk membuat permainan jauh lebih seru, kompetitif, dan menarik secara visual.
 ✨ Daftar Fitur & Modifikasi Utama
@@ -49,6 +50,8 @@ Proyek ini merupakan pengembangan dari game klasik Block Breaker berbasis Python
     Desain Objek Presisi: Balok dan striker didesain menggunakan sudut melengkung (border radius) serta garis tepi (border) agar terlihat lebih berdimensi dan tidak datar.
 
 🕹️ Panduan Kontrol Permainan
+<img width="757" height="666" alt="Screenshot 2026-11-10 111115" src="https://github.com/user-attachments/assets/889d057d-4b30-4b62-a282-e4c3d541451b" />
+
 
     Tombol Kiri / Kanan (← / →): Menggerakkan papan pemukul (striker).
 
